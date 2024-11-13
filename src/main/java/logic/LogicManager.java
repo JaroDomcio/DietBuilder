@@ -3,11 +3,10 @@ package logic;
 import java.util.ArrayList;
 
 public class LogicManager {
-    private FileHandler fH ;
+    private FileHandler fH;
     private ArrayList<Ingredient> ingredients;
-    private ArrayList<Meal> Meals;
 
-    public LogicManager(ArrayList<Ingredient> ingredients, FileHandler fH){
+    public LogicManager(ArrayList<Ingredient> ingredients, FileHandler fH) {
         this.ingredients = ingredients;
         this.fH = fH;
     }
@@ -15,30 +14,42 @@ public class LogicManager {
     public void addIngredient(String name, int carbs, int fat, int protein, String type) {
         int id = findLowestAvailableIngredientId();
         Ingredient newIngredient = new Ingredient(id, name, carbs, fat, protein, type);
-        System.out.println(newIngredient);
         ingredients.add(newIngredient);
-        System.out.println(ingredients);
         fH.saveIngredients(ingredients);
     }
-    public void deleteIngredient(){
 
-    }
-    public void displayMacro(){
-        for (Ingredient ing : ingredients){
-            System.out.println(ing);
+    public void deleteIngredient(int id) {
+        Ingredient ingredientToDelete = findIngredientById(id);
+        if (ingredientToDelete != null) {
+            ingredients.remove(ingredientToDelete);
+            fH.saveIngredients(ingredients);
+        } else {
+            System.out.println("Składnik o podanym ID nie został znaleziony.");
         }
     }
-    public void changeMacro(int id){
-        Ingredient choosenIngredient = findIngredientById(id);
 
+
+    public void changeMacro(int id, int carbs, int fat, int protein, String type) {
+        Ingredient ingredientToEdit = findIngredientById(id);
+        if (ingredientToEdit != null) {
+            ingredientToEdit.setCarbs(carbs);
+            ingredientToEdit.setFat(fat);
+            ingredientToEdit.setProtein(protein);
+            ingredientToEdit.setType(type);
+            fH.saveIngredients(ingredients);
+        } else {
+            System.out.println("Składnik o podanym ID nie został znaleziony.");
+        }
     }
 
-    public void endProgram(){
+    public void endProgram() {
         fH.saveIngredients(ingredients);
     }
-    public ArrayList<Ingredient> returnIngredient(){
+
+    public ArrayList<Ingredient> returnIngredient() {
         return ingredients;
     }
+
     public Ingredient findIngredientById(int id) {
         for (Ingredient ing : ingredients) {
             if (ing.getId() == id) {
@@ -52,19 +63,17 @@ public class LogicManager {
         int id = 1; // Zaczynamy od ID 1
         boolean idExists = true;
 
-        // Pętla działa dopóki istnieje pracownik z danym id
         while (idExists) {
-            idExists = false; // Zakładamy, że ID jest wolne
+            idExists = false;
             for (Ingredient ing : ingredients) {
-                if (ing.getId() == id) { // Jeśli ID jest zajęte
-                    id++; // Przechodzimy do kolejnego ID
-                    idExists = true; // Flaga ustawiona, kontynuujemy szukanie
+                if (ing.getId() == id) {
+                    id++;
+                    idExists = true;
                     break;
                 }
             }
         }
-        return id; // Zwracamy najmniejsze wolne ID
+        return id;
     }
-
 }
 
