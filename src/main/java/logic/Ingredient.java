@@ -4,7 +4,6 @@ public class Ingredient {
 
     private int id;
     private String name;
-    private int quantity;
     private int carbs;
     private int fat;
     private int protein;
@@ -13,7 +12,6 @@ public class Ingredient {
     public Ingredient(int id, String name, int carbs, int fat, int protein, String type){
         this.id = id;
         this.name = name;
-        this.quantity = 100;
         this.carbs = carbs;
         this.fat = fat;
         this.protein = protein;
@@ -67,12 +65,6 @@ public class Ingredient {
 
     @Override
     public String toString() {
-        return "Ingredient{id=" + id +
-                ", name='" + name + '\'' +
-                ", carbs=" + carbs +
-                ", fat=" + fat +
-                ", protein=" + protein +
-                ", type='" + type + '\'' +
-                '}';
+        return name;
     }
 }

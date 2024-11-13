@@ -15,6 +15,6 @@ public class Main {
         ArrayList<Meal> meals = fH.loadMeals();
         LogicManagerIngredients lGI = new LogicManagerIngredients(ingredients,fH);
         LogicManagerMeals lGM = new LogicManagerMeals(meals,fH,lGI);
-        GUI gui = new GUI(lGI,lGM);
+        new GUI(lGI,lGM);
     }
 }

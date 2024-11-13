@@ -3,7 +3,6 @@ package GUI;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
-import java.util.stream.Collectors;
 import logic.Ingredient;
 import logic.LogicManagerIngredients;
 
@@ -12,13 +11,14 @@ public class IngredientsOptionsGUI {
     private CardLayout cardLayout;
     private JPanel mainPanel;
     private LogicManagerIngredients logicManagerIngredients;
+    private GUI mainGUI;
 
-    public IngredientsOptionsGUI(LogicManagerIngredients logicManagerIngredients, CardLayout cardLayout, JPanel mainPanel) {
+    public IngredientsOptionsGUI(LogicManagerIngredients logicManagerIngredients, CardLayout cardLayout, JPanel mainPanel, GUI mainGUI) {
         this.logicManagerIngredients = logicManagerIngredients;
         this.cardLayout = cardLayout;
         this.mainPanel = mainPanel;
+        this.mainGUI = mainGUI;
 
-        // Tworzenie panelu opcji składników
         ingredientsPanel = new JPanel(new FlowLayout());
 
         JButton addIngredientButton = new JButton("Dodaj składnik");
@@ -31,7 +31,6 @@ public class IngredientsOptionsGUI {
         ingredientsPanel.add(deleteIngredientButton);
         ingredientsPanel.add(backButton);
 
-        // Przejście do formularza dodawania składnika
         addIngredientButton.addActionListener(e -> AddIngredientForm());
         editIngredientButton.addActionListener(e -> EditIngredientForm());
         deleteIngredientButton.addActionListener(e -> deleteIngredient());
@@ -58,35 +57,18 @@ public class IngredientsOptionsGUI {
         if (selectedIngredient != null) {
             logicManagerIngredients.deleteIngredient(selectedIngredient.getId());
             JOptionPane.showMessageDialog(null, "Składnik został usunięty!");
+            mainGUI.refreshIngredientList(); // Odświeżenie listy składników w GUI
         }
     }
 
     private Ingredient selectIngredientFromList(String message) {
-        // Utwórz listę tekstów do wyświetlenia bez ID
-        List<String> displayList = logicManagerIngredients.getIngredients().stream()
-                .map(ing -> String.format("%s - carbs: %d - fat: %d - protein: %d",
-                        ing.getName(), ing.getCarbs(), ing.getFat(), ing.getProtein()))
-                .collect(Collectors.toList());
-
-        // Przechowaj ID składników w osobnej liście
-        List<Integer> idList = logicManagerIngredients.getIngredients().stream()
-                .map(Ingredient::getId)
-                .collect(Collectors.toList());
-
-        String[] displayArray = displayList.toArray(new String[0]);
-        System.out.println(displayArray);
-
-        String selectedOption = (String) JOptionPane.showInputDialog(
+        List<Ingredient> ingredients = logicManagerIngredients.getIngredients();
+        Ingredient selectedIngredient = (Ingredient) JOptionPane.showInputDialog(
                 null, message, "Wybór składnika",
-                JOptionPane.QUESTION_MESSAGE, null, displayArray, displayArray[0]);
+                JOptionPane.QUESTION_MESSAGE, null,
+                ingredients.toArray(), ingredients.get(0));
 
-        if (selectedOption != null) {
-            // Znajdź indeks wybranej opcji i uzyskaj ID z listy ID
-            int selectedIndex = displayList.indexOf(selectedOption);
-            int selectedId = idList.get(selectedIndex);
-            return logicManagerIngredients.findIngredientById(selectedId);
-        }
-        return null;
+        return selectedIngredient;
     }
 
     private JPanel createIngredientForm(String title, boolean isEditMode, Ingredient ingredient) {
@@ -149,6 +131,8 @@ public class IngredientsOptionsGUI {
                     JOptionPane.showMessageDialog(null, "Składnik został dodany!");
                 }
 
+                mainGUI.refreshIngredientList(); // Odświeżenie listy składników w GUI
+
                 clearFields(nameField, carbsField, fatField, proteinField, typeField);
                 cardLayout.show(mainPanel, "Ingredients");
             } catch (NumberFormatException ex) {
@@ -174,5 +158,9 @@ public class IngredientsOptionsGUI {
         return ingredientsPanel;
     }
 }
+
+
+
+
 
 
