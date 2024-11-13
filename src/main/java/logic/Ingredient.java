@@ -45,8 +45,8 @@ public class Ingredient {
         return type;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public int getCalories(){
+        return carbs*4+fat*9+protein*4;
     }
 
     public void setCarbs(int carbs) {

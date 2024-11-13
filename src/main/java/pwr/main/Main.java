@@ -1,17 +1,20 @@
 package pwr.main;
+import GUI.GUI;
 import logic.FileHandler;
 import logic.Ingredient;
-import logic.LogicManager;
 import logic.Meal;
+import logic.LogicManagerMeals;
+import logic.LogicManagerIngredients;
 
-import javax.swing.*;
 import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) {
         FileHandler fH = new FileHandler("src/ingredients.txt","src/meals.txt");
         ArrayList<Ingredient> ingredients = fH.loadIngredients();
-        LogicManager lG = new LogicManager(ingredients,fH);
-        GUI gui = new GUI(lG);
+        ArrayList<Meal> meals = fH.loadMeals();
+        LogicManagerIngredients lGI = new LogicManagerIngredients(ingredients,fH);
+        LogicManagerMeals lGM = new LogicManagerMeals(meals,fH,lGI);
+        GUI gui = new GUI(lGI,lGM);
     }
 }

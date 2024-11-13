@@ -1,20 +1,20 @@
-package pwr.main;
+package GUI;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import java.util.stream.Collectors;
-import logic.LogicManager;
 import logic.Ingredient;
+import logic.LogicManagerIngredients;
 
 public class IngredientsOptionsGUI {
     private JPanel ingredientsPanel;
     private CardLayout cardLayout;
     private JPanel mainPanel;
-    private LogicManager logicManager;
+    private LogicManagerIngredients logicManagerIngredients;
 
-    public IngredientsOptionsGUI(LogicManager logicManager, CardLayout cardLayout, JPanel mainPanel) {
-        this.logicManager = logicManager;
+    public IngredientsOptionsGUI(LogicManagerIngredients logicManagerIngredients, CardLayout cardLayout, JPanel mainPanel) {
+        this.logicManagerIngredients = logicManagerIngredients;
         this.cardLayout = cardLayout;
         this.mainPanel = mainPanel;
 
@@ -56,20 +56,20 @@ public class IngredientsOptionsGUI {
     private void deleteIngredient() {
         Ingredient selectedIngredient = selectIngredientFromList("Wybierz składnik do usunięcia:");
         if (selectedIngredient != null) {
-            logicManager.deleteIngredient(selectedIngredient.getId());
+            logicManagerIngredients.deleteIngredient(selectedIngredient.getId());
             JOptionPane.showMessageDialog(null, "Składnik został usunięty!");
         }
     }
 
     private Ingredient selectIngredientFromList(String message) {
         // Utwórz listę tekstów do wyświetlenia bez ID
-        List<String> displayList = logicManager.returnIngredient().stream()
+        List<String> displayList = logicManagerIngredients.getIngredients().stream()
                 .map(ing -> String.format("%s - carbs: %d - fat: %d - protein: %d",
                         ing.getName(), ing.getCarbs(), ing.getFat(), ing.getProtein()))
                 .collect(Collectors.toList());
 
         // Przechowaj ID składników w osobnej liście
-        List<Integer> idList = logicManager.returnIngredient().stream()
+        List<Integer> idList = logicManagerIngredients.getIngredients().stream()
                 .map(Ingredient::getId)
                 .collect(Collectors.toList());
 
@@ -84,7 +84,7 @@ public class IngredientsOptionsGUI {
             // Znajdź indeks wybranej opcji i uzyskaj ID z listy ID
             int selectedIndex = displayList.indexOf(selectedOption);
             int selectedId = idList.get(selectedIndex);
-            return logicManager.findIngredientById(selectedId);
+            return logicManagerIngredients.findIngredientById(selectedId);
         }
         return null;
     }
@@ -142,10 +142,10 @@ public class IngredientsOptionsGUI {
                 String type = typeField.getText();
 
                 if (isEditMode && ingredient != null) {
-                    logicManager.changeMacro(ingredient.getId(), carbs, fat, protein, type);
+                    logicManagerIngredients.changeMacro(ingredient.getId(), carbs, fat, protein, type);
                     JOptionPane.showMessageDialog(null, "Składnik został zaktualizowany!");
                 } else {
-                    logicManager.addIngredient(name, carbs, fat, protein, type);
+                    logicManagerIngredients.addIngredient(name, carbs, fat, protein, type);
                     JOptionPane.showMessageDialog(null, "Składnik został dodany!");
                 }
 

@@ -1,12 +1,13 @@
 package logic;
 
+import javax.swing.*;
 import java.util.ArrayList;
 
-public class LogicManager {
+public class LogicManagerIngredients {
     private FileHandler fH;
     private ArrayList<Ingredient> ingredients;
 
-    public LogicManager(ArrayList<Ingredient> ingredients, FileHandler fH) {
+    public LogicManagerIngredients(ArrayList<Ingredient> ingredients, FileHandler fH) {
         this.ingredients = ingredients;
         this.fH = fH;
     }
@@ -42,13 +43,24 @@ public class LogicManager {
         }
     }
 
+    public DefaultListModel<String> getIngredientListData() {
+        DefaultListModel<String> ingredientListModel = new DefaultListModel<>();
+        for (Ingredient ingredient : ingredients) {
+            String ingredientData = String.format("%s - carbs: %d, fat: %d, protein: %d, type: %s",
+                    ingredient.getName(), ingredient.getCarbs(), ingredient.getFat(), ingredient.getProtein(), ingredient.getType());
+            ingredientListModel.addElement(ingredientData);
+        }
+        return ingredientListModel;
+    }
+
     public void endProgram() {
         fH.saveIngredients(ingredients);
     }
 
-    public ArrayList<Ingredient> returnIngredient() {
+    public ArrayList<Ingredient> getIngredients() {
         return ingredients;
     }
+
 
     public Ingredient findIngredientById(int id) {
         for (Ingredient ing : ingredients) {
