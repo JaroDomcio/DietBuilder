@@ -37,13 +37,6 @@ public class Meal {
         return quantities;
     }
 
-    public void setIngredientsIds(ArrayList<Integer> ingredientsIds) {
-        this.ingredientsIds = ingredientsIds;
-    }
-
-    public void setQuantities(ArrayList<Integer> quantities) {
-        this.quantities = quantities;
-    }
 
     @Override
     public String toString() {

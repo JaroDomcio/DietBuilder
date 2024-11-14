@@ -1,2 +1,2 @@
 1;Obiad;4;22
-2;Sniadanie;1,4,6;70,20,100
+2;Sniadanie;1,4;50,50

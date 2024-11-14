@@ -43,7 +43,6 @@ public class MealsOptionsGUI {
         topPanel.add(backButton);
 
         addMealButton.addActionListener(e -> {
-            System.out.println("Przechodzenie do widoku dodawania posiłku");
             if (addMealPanel != null) {
                 mainPanel.remove(addMealPanel);
             }
@@ -55,7 +54,6 @@ public class MealsOptionsGUI {
         });
 
         editMealButton.addActionListener(e -> {
-            System.out.println("Przechodzenie do widoku edycji posiłku");
             Meal selectedMeal = selectMealFromList("Wybierz posiłek do edycji:");
             if (selectedMeal != null) {
                 if (addMealPanel != null) {
@@ -69,19 +67,15 @@ public class MealsOptionsGUI {
             }
         });
 
-        // Zaktualizowany listener dla przycisku usuwania posiłku
         deleteMealButton.addActionListener(e -> {
-            System.out.println("Usuwanie posiłku");
             Meal selectedMeal = selectMealFromList("Wybierz posiłek do usunięcia:");
             if (selectedMeal != null) {
                 logicManagerMeals.deleteMeal(selectedMeal.getId());
-                mainGUI.refreshMealList();
                 JOptionPane.showMessageDialog(null, "Posiłek został usunięty.", "Informacja", JOptionPane.INFORMATION_MESSAGE);
             }
         });
 
         backButton.addActionListener(e -> {
-            System.out.println("Powrót do ekranu głównego");
             cardLayout.show(mainPanel, "Home");
         });
 
@@ -208,7 +202,6 @@ public class MealsOptionsGUI {
                     JOptionPane.showMessageDialog(null, "Posiłek został dodany.", "Informacja", JOptionPane.INFORMATION_MESSAGE);
                 }
 
-                mainGUI.refreshMealList();
 
                 nameField.setText("");
                 for (int i = 0; i < checkBoxes.size(); i++) {
@@ -223,7 +216,6 @@ public class MealsOptionsGUI {
         });
 
         backButton.addActionListener(e -> {
-            System.out.println("Powrót do listy posiłków");
             cardLayout.show(mainPanel, "Meals");
         });
 
@@ -234,6 +226,7 @@ public class MealsOptionsGUI {
         return panel;
     }
 }
+
 
 
 

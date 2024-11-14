@@ -5,16 +5,20 @@ import java.awt.*;
 import java.util.List;
 import logic.Ingredient;
 import logic.LogicManagerIngredients;
+import logic.LogicManagerMeals;
+import logic.Meal;
 
 public class IngredientsOptionsGUI {
     private JPanel ingredientsPanel;
     private CardLayout cardLayout;
     private JPanel mainPanel;
     private LogicManagerIngredients logicManagerIngredients;
+    private LogicManagerMeals logicManagerMeals;
     private GUI mainGUI;
 
-    public IngredientsOptionsGUI(LogicManagerIngredients logicManagerIngredients, CardLayout cardLayout, JPanel mainPanel, GUI mainGUI) {
+    public IngredientsOptionsGUI(LogicManagerIngredients logicManagerIngredients, LogicManagerMeals logicManagerMeals, CardLayout cardLayout, JPanel mainPanel, GUI mainGUI) {
         this.logicManagerIngredients = logicManagerIngredients;
+        this.logicManagerMeals = logicManagerMeals;
         this.cardLayout = cardLayout;
         this.mainPanel = mainPanel;
         this.mainGUI = mainGUI;
@@ -56,13 +60,27 @@ public class IngredientsOptionsGUI {
         Ingredient selectedIngredient = selectIngredientFromList("Wybierz składnik do usunięcia:");
         if (selectedIngredient != null) {
             logicManagerIngredients.deleteIngredient(selectedIngredient.getId());
-            JOptionPane.showMessageDialog(null, "Składnik został usunięty!");
-            mainGUI.refreshIngredientList(); // Odświeżenie listy składników w GUI
+            // Usuwanie posiłków zawierających usunięty składnik
+            List<Meal> deletedMeals = logicManagerMeals.deleteMealsContainingIngredient(selectedIngredient.getId());
+            if (deletedMeals.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Składnik został usunięty.");
+            } else {
+                StringBuilder message = new StringBuilder("Składnik oraz następujące posiłki zostały usunięte:\n");
+                for (Meal meal : deletedMeals) {
+                    message.append("- ").append(meal.getName()).append("\n");
+                }
+                JOptionPane.showMessageDialog(null, message.toString(), "Informacja", JOptionPane.INFORMATION_MESSAGE);
+            }
+
         }
     }
 
     private Ingredient selectIngredientFromList(String message) {
         List<Ingredient> ingredients = logicManagerIngredients.getIngredients();
+        if (ingredients.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Brak dostępnych składników.", "Informacja", JOptionPane.INFORMATION_MESSAGE);
+            return null;
+        }
         Ingredient selectedIngredient = (Ingredient) JOptionPane.showInputDialog(
                 null, message, "Wybór składnika",
                 JOptionPane.QUESTION_MESSAGE, null,
@@ -131,7 +149,6 @@ public class IngredientsOptionsGUI {
                     JOptionPane.showMessageDialog(null, "Składnik został dodany!");
                 }
 
-                mainGUI.refreshIngredientList(); // Odświeżenie listy składników w GUI
 
                 clearFields(nameField, carbsField, fatField, proteinField, typeField);
                 cardLayout.show(mainPanel, "Ingredients");
@@ -158,6 +175,8 @@ public class IngredientsOptionsGUI {
         return ingredientsPanel;
     }
 }
+
+
 
 
 

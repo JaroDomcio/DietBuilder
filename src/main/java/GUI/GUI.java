@@ -4,10 +4,16 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import logic.LogicManagerIngredients;
-import logic.LogicManagerMeals;
-import logic.Meal;
-import logic.Ingredient;
+import java.io.IOException;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+
+import logic.*;
 
 public class GUI {
     private JFrame frame;
@@ -30,7 +36,7 @@ public class GUI {
         mainPanel = new JPanel(cardLayout);
 
         JPanel homePanel = createHomePanel();
-        JPanel ingredientsPanel = new IngredientsOptionsGUI(logicManagerIngredients, cardLayout, mainPanel, this).getPanel();
+        JPanel ingredientsPanel = new IngredientsOptionsGUI(logicManagerIngredients, logicManagerMeals, cardLayout, mainPanel, this).getPanel();
         JPanel mealsPanel = new MealsOptionsGUI(logicManagerMeals, logicManagerIngredients, cardLayout, mainPanel, this).getPanel();
 
         mainPanel.add(homePanel, "Home");
@@ -71,7 +77,6 @@ public class GUI {
         ingredientsList.setBorder(BorderFactory.createTitledBorder("Składniki"));
         listPanel.add(new JScrollPane(ingredientsList));
 
-        // Dodanie nasłuchiwania zdarzeń dla ingredientsList
         ingredientsList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -79,7 +84,6 @@ public class GUI {
                     int index = ingredientsList.locationToIndex(e.getPoint());
                     if (index >= 0) {
                         Ingredient selectedIngredient = ingredientsList.getModel().getElementAt(index);
-                        // Tworzenie informacji o makroskładnikach
                         String ingredientInfo = String.format(
                                 "Nazwa: %s\nWęglowodany: %d g\nBiałko: %d g\nTłuszcz: %d g\nKalorie: %d kcal\nTyp: %s",
                                 selectedIngredient.getName(),
@@ -100,27 +104,23 @@ public class GUI {
         JPanel buttonPanel = new JPanel(new FlowLayout());
         JButton mealsButton = new JButton("Posiłki");
         JButton ingredientsButton = new JButton("Składniki");
+        JButton shoppingListButton = new JButton("Wygeneruj listę zakupów");
 
         buttonPanel.add(mealsButton);
+        buttonPanel.add(shoppingListButton);
         buttonPanel.add(ingredientsButton);
 
         panel.add(buttonPanel, BorderLayout.NORTH);
 
         mealsButton.addActionListener(e -> cardLayout.show(mainPanel, "Meals"));
         ingredientsButton.addActionListener(e -> cardLayout.show(mainPanel, "Ingredients"));
+        shoppingListButton.addActionListener(e -> {
+            ShoppingListGenerator shoppingListGenerator = new ShoppingListGenerator(logicManagerIngredients, logicManagerMeals);
+            shoppingListGenerator.generateShoppingList();
+        });
+
 
         return panel;
     }
 
-    public void refreshIngredientList() {
-        ingredientsList.setModel(logicManagerIngredients.getIngredientListData());
-    }
-
-    public void refreshMealList() {
-        mealsList.setModel(logicManagerMeals.getMealListData());
-    }
 }
-
-
-
-

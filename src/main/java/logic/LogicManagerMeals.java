@@ -1,40 +1,29 @@
 package logic;
 
-import javax.swing.*;
+import javax.swing.DefaultListModel;
+import javax.swing.JOptionPane;
 import java.util.ArrayList;
 import java.util.List;
 
 public class LogicManagerMeals {
 
     private FileHandler fH;
-    private ArrayList<Meal> meals;
+    private DefaultListModel<Meal> meals;
     private LogicManagerIngredients logicManagerIngredients;
-    private DefaultListModel<Meal> mealListModel;
 
-    public LogicManagerMeals(ArrayList<Meal> meals, FileHandler fH, LogicManagerIngredients logicManagerIngredients) {
+    public LogicManagerMeals(DefaultListModel<Meal> meals, FileHandler fH, LogicManagerIngredients logicManagerIngredients) {
         this.meals = meals;
         this.fH = fH;
         this.logicManagerIngredients = logicManagerIngredients;
-        this.mealListModel = new DefaultListModel<>();
-        initializeMealListModel();
-    }
-
-    private void initializeMealListModel() {
-        for (Meal meal : meals) {
-            mealListModel.addElement(meal);
-        }
     }
 
     public DefaultListModel<Meal> getMealListData() {
-        return mealListModel;
-    }
-
-    public ArrayList<Meal> getMeals() {
         return meals;
     }
 
     public Meal findMealByID(int id) {
-        for (Meal meal : meals) {
+        for (int i = 0; i < meals.size(); i++) {
+            Meal meal = meals.getElementAt(i);
             if (meal.getId() == id) {
                 return meal;
             }
@@ -98,9 +87,9 @@ public class LogicManagerMeals {
             newMeal.addQuantity(quantities.get(i));
         }
 
-        meals.add(newMeal);
-        mealListModel.addElement(newMeal);
+        meals.addElement(newMeal);
         fH.saveMeals(meals);
+
     }
 
     public void editMeal(int mealId, ArrayList<Integer> ingredientIds, ArrayList<Integer> quantities) {
@@ -116,7 +105,9 @@ public class LogicManagerMeals {
 
             // Aktualizacja modelu listy
             int index = meals.indexOf(mealToEdit);
-            mealListModel.setElementAt(mealToEdit, index);
+            if (index >= 0) {
+                meals.setElementAt(mealToEdit, index);
+            }
             fH.saveMeals(meals);
         } else {
             JOptionPane.showMessageDialog(null, "Nie znaleziono posiłku do edycji.", "Błąd", JOptionPane.ERROR_MESSAGE);
@@ -126,12 +117,27 @@ public class LogicManagerMeals {
     public void deleteMeal(int mealId) {
         Meal mealToDelete = findMealByID(mealId);
         if (mealToDelete != null) {
-            meals.remove(mealToDelete);
-            mealListModel.removeElement(mealToDelete);
+            meals.removeElement(mealToDelete);
             fH.saveMeals(meals);
         } else {
             JOptionPane.showMessageDialog(null, "Nie znaleziono posiłku do usunięcia.", "Błąd", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    public List<Meal> deleteMealsContainingIngredient(int ingredientId) {
+        List<Meal> mealsToDelete = new ArrayList<>();
+        // Tworzymy kopię listy posiłków, aby uniknąć ConcurrentModificationException
+        for (int i = meals.size() - 1; i >= 0; i--) {
+            Meal meal = meals.getElementAt(i);
+            if (meal.getIngredientsIds().contains(ingredientId)) {
+                mealsToDelete.add(meal);
+                meals.removeElementAt(i);
+            }
+        }
+        if (!mealsToDelete.isEmpty()) {
+            fH.saveMeals(meals);
+        }
+        return mealsToDelete;
     }
 
     private int findLowestAvailableMealId() {
@@ -140,7 +146,8 @@ public class LogicManagerMeals {
 
         while (idExists) {
             idExists = false;
-            for (Meal meal : meals) {
+            for (int i = 0; i < meals.size(); i++) {
+                Meal meal = meals.getElementAt(i);
                 if (meal.getId() == id) {
                     id++;
                     idExists = true;
@@ -150,7 +157,18 @@ public class LogicManagerMeals {
         }
         return id;
     }
+
+    public List<Meal> getMeals() {
+        List<Meal> list = new ArrayList<>();
+        for (int i = 0; i < meals.size(); i++) {
+            list.add(meals.getElementAt(i));
+        }
+        return list;
+    }
 }
+
+
+
 
 
 

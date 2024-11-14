@@ -3,4 +3,4 @@
 4;Jablko;14;1;1;Owoc
 5;ser;1;33;24;Nabial
 3;Ryż;80;1;7;Zboze
-6;Platki owsiane;50;1;4;Zboze
+6;Platki owsiane;66;7;17;Zboze
