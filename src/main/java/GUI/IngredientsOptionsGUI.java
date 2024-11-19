@@ -59,19 +59,22 @@ public class IngredientsOptionsGUI {
     private void deleteIngredient() {
         Ingredient selectedIngredient = selectIngredientFromList("Wybierz składnik do usunięcia:");
         if (selectedIngredient != null) {
-            logicManagerIngredients.deleteIngredient(selectedIngredient.getId());
-            // Usuwanie posiłków zawierających usunięty składnik
-            List<Meal> deletedMeals = logicManagerMeals.deleteMealsContainingIngredient(selectedIngredient.getId());
-            if (deletedMeals.isEmpty()) {
-                JOptionPane.showMessageDialog(null, "Składnik został usunięty.");
-            } else {
-                StringBuilder message = new StringBuilder("Składnik oraz następujące posiłki zostały usunięte:\n");
-                for (Meal meal : deletedMeals) {
-                    message.append("- ").append(meal.getName()).append("\n");
+            boolean success = logicManagerIngredients.deleteIngredient(selectedIngredient.getId());
+            if (success) {
+                // Usuwanie posiłków zawierających usunięty składnik
+                List<Meal> deletedMeals = logicManagerMeals.deleteMealsContainingIngredient(selectedIngredient.getId());
+                if (deletedMeals.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Składnik został usunięty.");
+                } else {
+                    StringBuilder message = new StringBuilder("Składnik oraz następujące posiłki zostały usunięte:\n");
+                    for (Meal meal : deletedMeals) {
+                        message.append("- ").append(meal.getName()).append("\n");
+                    }
+                    JOptionPane.showMessageDialog(null, message.toString(), "Informacja", JOptionPane.INFORMATION_MESSAGE);
                 }
-                JOptionPane.showMessageDialog(null, message.toString(), "Informacja", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(null, "Nie znaleziono składnika do usunięcia.", "Błąd", JOptionPane.ERROR_MESSAGE);
             }
-
         }
     }
 
@@ -142,13 +145,20 @@ public class IngredientsOptionsGUI {
                 String type = typeField.getText();
 
                 if (isEditMode && ingredient != null) {
-                    logicManagerIngredients.changeMacro(ingredient.getId(), carbs, fat, protein, type);
-                    JOptionPane.showMessageDialog(null, "Składnik został zaktualizowany!");
+                    boolean success = logicManagerIngredients.changeMacro(ingredient.getId(), carbs, fat, protein, type);
+                    if (success) {
+                        JOptionPane.showMessageDialog(null, "Składnik został zaktualizowany!");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Nie znaleziono składnika do edycji.", "Błąd", JOptionPane.ERROR_MESSAGE);
+                    }
                 } else {
-                    logicManagerIngredients.addIngredient(name, carbs, fat, protein, type);
-                    JOptionPane.showMessageDialog(null, "Składnik został dodany!");
+                    boolean success = logicManagerIngredients.addIngredient(name, carbs, fat, protein, type);
+                    if (success) {
+                        JOptionPane.showMessageDialog(null, "Składnik został dodany!");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Nazwa składnika jest wymagana.", "Błąd", JOptionPane.ERROR_MESSAGE);
+                    }
                 }
-
 
                 clearFields(nameField, carbsField, fatField, proteinField, typeField);
                 cardLayout.show(mainPanel, "Ingredients");
@@ -175,11 +185,3 @@ public class IngredientsOptionsGUI {
         return ingredientsPanel;
     }
 }
-
-
-
-
-
-
-
-

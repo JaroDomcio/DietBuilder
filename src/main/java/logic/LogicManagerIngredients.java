@@ -5,36 +5,41 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LogicManagerIngredients {
-    private FileHandler fH;
+    private DatabaseHandler dbHandler;
     private DefaultListModel<Ingredient> ingredients;
 
-    public LogicManagerIngredients(DefaultListModel<Ingredient> ingredients, FileHandler fH) {
-        this.ingredients = ingredients;
-        this.fH = fH;
+    public LogicManagerIngredients(DatabaseHandler dbHandler) {
+        this.dbHandler = dbHandler;
+        this.ingredients = dbHandler.loadIngredients();
     }
 
     public DefaultListModel<Ingredient> getIngredientListData() {
         return ingredients;
     }
 
-    public void addIngredient(String name, int carbs, int fat, int protein, String type) {
+    public boolean addIngredient(String name, int carbs, int fat, int protein, String type) {
+        if (name == null || name.isEmpty()) {
+            return false;
+        }
         int id = findLowestAvailableIngredientId();
         Ingredient newIngredient = new Ingredient(id, name, carbs, fat, protein, type);
         ingredients.addElement(newIngredient);
-        fH.saveIngredients(ingredients);
+        dbHandler.saveIngredient(newIngredient);
+        return true;
     }
 
-    public void deleteIngredient(int id) {
+    public boolean deleteIngredient(int id) {
         Ingredient ingredientToDelete = findIngredientById(id);
         if (ingredientToDelete != null) {
             ingredients.removeElement(ingredientToDelete);
-            fH.saveIngredients(ingredients);
+            dbHandler.deleteIngredient(id);
+            return true;
         } else {
-            System.out.println("Składnik o podanym ID nie został znaleziony.");
+            return false;
         }
     }
 
-    public void changeMacro(int id, int carbs, int fat, int protein, String type) {
+    public boolean changeMacro(int id, int carbs, int fat, int protein, String type) {
         Ingredient ingredientToEdit = findIngredientById(id);
         if (ingredientToEdit != null) {
             ingredientToEdit.setCarbs(carbs);
@@ -48,9 +53,10 @@ public class LogicManagerIngredients {
                 ingredients.setElementAt(ingredientToEdit, index);
             }
 
-            fH.saveIngredients(ingredients);
+            dbHandler.updateIngredient(ingredientToEdit);
+            return true;
         } else {
-            System.out.println("Składnik o podanym ID nie został znaleziony.");
+            return false;
         }
     }
 
@@ -90,10 +96,3 @@ public class LogicManagerIngredients {
         return list;
     }
 }
-
-
-
-
-
-
-

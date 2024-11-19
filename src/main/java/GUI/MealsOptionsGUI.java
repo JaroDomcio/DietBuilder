@@ -3,6 +3,7 @@ package GUI;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.List;
 import logic.Ingredient;
 import logic.LogicManagerIngredients;
 import logic.LogicManagerMeals;
@@ -70,8 +71,12 @@ public class MealsOptionsGUI {
         deleteMealButton.addActionListener(e -> {
             Meal selectedMeal = selectMealFromList("Wybierz posiłek do usunięcia:");
             if (selectedMeal != null) {
-                logicManagerMeals.deleteMeal(selectedMeal.getId());
-                JOptionPane.showMessageDialog(null, "Posiłek został usunięty.", "Informacja", JOptionPane.INFORMATION_MESSAGE);
+                boolean success = logicManagerMeals.deleteMeal(selectedMeal.getId());
+                if (success) {
+                    JOptionPane.showMessageDialog(null, "Posiłek został usunięty.", "Informacja", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(null, "Nie znaleziono posiłku do usunięcia.", "Błąd", JOptionPane.ERROR_MESSAGE);
+                }
             }
         });
 
@@ -84,7 +89,7 @@ public class MealsOptionsGUI {
     }
 
     private Meal selectMealFromList(String message) {
-        java.util.List<Meal> meals = logicManagerMeals.getMeals();
+        List<Meal> meals = logicManagerMeals.getMeals();
         if (meals.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Brak dostępnych posiłków.", "Informacja", JOptionPane.INFORMATION_MESSAGE);
             return null;
@@ -108,7 +113,7 @@ public class MealsOptionsGUI {
 
         if (isEditMode && mealToEdit != null) {
             nameField.setText(mealToEdit.getName());
-            nameField.setEditable(false); // Blokujemy edycję nazwy
+            nameField.setEditable(false);
         }
 
         ArrayList<JCheckBox> checkBoxes = new ArrayList<>();
@@ -123,6 +128,7 @@ public class MealsOptionsGUI {
             inputPanel.add(quantityField);
 
             checkBoxes.add(checkBox);
+
             quantityFields.add(quantityField);
             ingredientIds.add(ingredient.getId());
 
@@ -194,14 +200,22 @@ public class MealsOptionsGUI {
                     return;
                 }
 
+                boolean success;
                 if (isEditMode && mealToEdit != null) {
-                    logicManagerMeals.editMeal(mealToEdit.getId(), selectedIngredientIds, selectedQuantities);
-                    JOptionPane.showMessageDialog(null, "Posiłek został zaktualizowany.", "Informacja", JOptionPane.INFORMATION_MESSAGE);
+                    success = logicManagerMeals.editMeal(mealToEdit.getId(), selectedIngredientIds, selectedQuantities);
+                    if (success) {
+                        JOptionPane.showMessageDialog(null, "Posiłek został zaktualizowany.", "Informacja", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Nie znaleziono posiłku do edycji.", "Błąd", JOptionPane.ERROR_MESSAGE);
+                    }
                 } else {
-                    logicManagerMeals.addMeal(mealName, selectedIngredientIds, selectedQuantities);
-                    JOptionPane.showMessageDialog(null, "Posiłek został dodany.", "Informacja", JOptionPane.INFORMATION_MESSAGE);
+                    success = logicManagerMeals.addMeal(mealName, selectedIngredientIds, selectedQuantities);
+                    if (success) {
+                        JOptionPane.showMessageDialog(null, "Posiłek został dodany.", "Informacja", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Błąd podczas dodawania posiłku. Upewnij się, że wszystkie dane są poprawne.", "Błąd", JOptionPane.ERROR_MESSAGE);
+                    }
                 }
-
 
                 nameField.setText("");
                 for (int i = 0; i < checkBoxes.size(); i++) {
@@ -226,15 +240,3 @@ public class MealsOptionsGUI {
         return panel;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-

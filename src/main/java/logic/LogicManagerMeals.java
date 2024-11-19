@@ -1,20 +1,19 @@
 package logic;
 
 import javax.swing.DefaultListModel;
-import javax.swing.JOptionPane;
 import java.util.ArrayList;
 import java.util.List;
 
 public class LogicManagerMeals {
 
-    private FileHandler fH;
+    private DatabaseHandler dbHandler;
     private DefaultListModel<Meal> meals;
     private LogicManagerIngredients logicManagerIngredients;
 
-    public LogicManagerMeals(DefaultListModel<Meal> meals, FileHandler fH, LogicManagerIngredients logicManagerIngredients) {
-        this.meals = meals;
-        this.fH = fH;
+    public LogicManagerMeals(DatabaseHandler dbHandler, LogicManagerIngredients logicManagerIngredients) {
+        this.dbHandler = dbHandler;
         this.logicManagerIngredients = logicManagerIngredients;
+        this.meals = dbHandler.loadMeals();
     }
 
     public DefaultListModel<Meal> getMealListData() {
@@ -68,15 +67,13 @@ public class LogicManagerMeals {
         return ingredientsInfo.toString();
     }
 
-    public void addMeal(String mealName, ArrayList<Integer> ingredientIds, ArrayList<Integer> quantities) {
+    public boolean addMeal(String mealName, ArrayList<Integer> ingredientIds, ArrayList<Integer> quantities) {
         if (mealName == null || mealName.isEmpty() || ingredientIds.isEmpty() || quantities.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Nazwa posiłku i składniki muszą być podane.", "Błąd", JOptionPane.ERROR_MESSAGE);
-            return;
+            return false;
         }
 
         if (ingredientIds.size() != quantities.size()) {
-            JOptionPane.showMessageDialog(null, "Liczba składników musi odpowiadać liczbie ilości.", "Błąd", JOptionPane.ERROR_MESSAGE);
-            return;
+            return false;
         }
 
         int newId = findLowestAvailableMealId();
@@ -88,11 +85,11 @@ public class LogicManagerMeals {
         }
 
         meals.addElement(newMeal);
-        fH.saveMeals(meals);
-
+        dbHandler.saveMeal(newMeal);
+        return true;
     }
 
-    public void editMeal(int mealId, ArrayList<Integer> ingredientIds, ArrayList<Integer> quantities) {
+    public boolean editMeal(int mealId, ArrayList<Integer> ingredientIds, ArrayList<Integer> quantities) {
         Meal mealToEdit = findMealByID(mealId);
         if (mealToEdit != null) {
             mealToEdit.getIngredientsIds().clear();
@@ -108,34 +105,33 @@ public class LogicManagerMeals {
             if (index >= 0) {
                 meals.setElementAt(mealToEdit, index);
             }
-            fH.saveMeals(meals);
+            dbHandler.updateMeal(mealToEdit);
+            return true;
         } else {
-            JOptionPane.showMessageDialog(null, "Nie znaleziono posiłku do edycji.", "Błąd", JOptionPane.ERROR_MESSAGE);
+            return false;
         }
     }
 
-    public void deleteMeal(int mealId) {
+    public boolean deleteMeal(int mealId) {
         Meal mealToDelete = findMealByID(mealId);
         if (mealToDelete != null) {
             meals.removeElement(mealToDelete);
-            fH.saveMeals(meals);
+            dbHandler.deleteMeal(mealId);
+            return true;
         } else {
-            JOptionPane.showMessageDialog(null, "Nie znaleziono posiłku do usunięcia.", "Błąd", JOptionPane.ERROR_MESSAGE);
+            return false;
         }
     }
 
     public List<Meal> deleteMealsContainingIngredient(int ingredientId) {
         List<Meal> mealsToDelete = new ArrayList<>();
-        // Tworzymy kopię listy posiłków, aby uniknąć ConcurrentModificationException
         for (int i = meals.size() - 1; i >= 0; i--) {
             Meal meal = meals.getElementAt(i);
             if (meal.getIngredientsIds().contains(ingredientId)) {
                 mealsToDelete.add(meal);
                 meals.removeElementAt(i);
+                dbHandler.deleteMeal(meal.getId());
             }
-        }
-        if (!mealsToDelete.isEmpty()) {
-            fH.saveMeals(meals);
         }
         return mealsToDelete;
     }
@@ -166,13 +162,3 @@ public class LogicManagerMeals {
         return list;
     }
 }
-
-
-
-
-
-
-
-
-
-
