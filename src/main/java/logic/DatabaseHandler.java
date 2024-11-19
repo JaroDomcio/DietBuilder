@@ -1,14 +1,15 @@
 package logic;
 
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 import javax.swing.DefaultListModel;
+import java.sql.*;
+import java.util.List;
 
 public class DatabaseHandler {
-    private String url = "jdbc:sqlite:dietbuilder.db";
+    private String url;
 
-    public DatabaseHandler() {
+
+    public DatabaseHandler(String dbPath) {
+        this.url = "jdbc:sqlite:" + dbPath;
         createTables();
     }
 
@@ -19,7 +20,7 @@ public class DatabaseHandler {
                 + " carbs INTEGER,\n"
                 + " fat INTEGER,\n"
                 + " protein INTEGER,\n"
-                + " type TEXT\n"
+                + " type TEXT NOT NULL\n" // Typ jest wymagany
                 + ");";
 
         String createMealsTable = "CREATE TABLE IF NOT EXISTS meals (\n"
@@ -46,8 +47,7 @@ public class DatabaseHandler {
         }
     }
 
-    // Metody do obsługi składników
-
+    // Ładowanie składników z bazy danych
     public DefaultListModel<Ingredient> loadIngredients() {
         DefaultListModel<Ingredient> ingredients = new DefaultListModel<>();
         String sql = "SELECT * FROM ingredients";
@@ -108,6 +108,7 @@ public class DatabaseHandler {
         }
     }
 
+
     public void deleteIngredient(int ingredientId) {
         String sql = "DELETE FROM ingredients WHERE id = ?";
 
@@ -121,7 +122,6 @@ public class DatabaseHandler {
         }
     }
 
-    // Metody do obsługi posiłków
 
     public DefaultListModel<Meal> loadMeals() {
         DefaultListModel<Meal> meals = new DefaultListModel<>();
@@ -137,7 +137,6 @@ public class DatabaseHandler {
 
                 Meal meal = new Meal(mealId, mealName);
 
-                // Wczytaj składniki dla danego posiłku
                 String sqlIngredients = "SELECT * FROM meal_ingredients WHERE meal_id = ?";
                 try (PreparedStatement pstmtIngredients = conn.prepareStatement(sqlIngredients)) {
                     pstmtIngredients.setInt(1, mealId);
@@ -157,6 +156,7 @@ public class DatabaseHandler {
         return meals;
     }
 
+
     public void saveMeal(Meal meal) {
         String sqlMeal = "INSERT INTO meals(id, name) VALUES(?,?)";
         String sqlMealIngredient = "INSERT INTO meal_ingredients(meal_id, ingredient_id, quantity) VALUES(?,?,?)";
@@ -167,12 +167,11 @@ public class DatabaseHandler {
             try (PreparedStatement pstmtMeal = conn.prepareStatement(sqlMeal);
                  PreparedStatement pstmtMealIngredient = conn.prepareStatement(sqlMealIngredient)) {
 
-                // Zapisz posiłek
                 pstmtMeal.setInt(1, meal.getId());
                 pstmtMeal.setString(2, meal.getName());
                 pstmtMeal.executeUpdate();
 
-                // Zapisz składniki posiłku
+
                 List<Integer> ingredientIds = meal.getIngredientsIds();
                 List<Integer> quantities = meal.getQuantities();
 
@@ -193,6 +192,7 @@ public class DatabaseHandler {
         }
     }
 
+
     public void updateMeal(Meal meal) {
         String sqlUpdateMeal = "UPDATE meals SET name = ? WHERE id = ?";
         String sqlDeleteIngredients = "DELETE FROM meal_ingredients WHERE meal_id = ?";
@@ -205,16 +205,16 @@ public class DatabaseHandler {
                  PreparedStatement pstmtDeleteIngredients = conn.prepareStatement(sqlDeleteIngredients);
                  PreparedStatement pstmtInsertIngredients = conn.prepareStatement(sqlInsertIngredients)) {
 
-                // Aktualizuj nazwę posiłku
+
                 pstmtUpdateMeal.setString(1, meal.getName());
                 pstmtUpdateMeal.setInt(2, meal.getId());
                 pstmtUpdateMeal.executeUpdate();
 
-                // Usuń stare składniki posiłku
+
                 pstmtDeleteIngredients.setInt(1, meal.getId());
                 pstmtDeleteIngredients.executeUpdate();
 
-                // Dodaj nowe składniki posiłku
+
                 List<Integer> ingredientIds = meal.getIngredientsIds();
                 List<Integer> quantities = meal.getQuantities();
 
@@ -245,11 +245,9 @@ public class DatabaseHandler {
             try (PreparedStatement pstmtDeleteIngredients = conn.prepareStatement(sqlDeleteIngredients);
                  PreparedStatement pstmtDeleteMeal = conn.prepareStatement(sqlDeleteMeal)) {
 
-                // Usuń składniki posiłku
                 pstmtDeleteIngredients.setInt(1, mealId);
                 pstmtDeleteIngredients.executeUpdate();
 
-                // Usuń posiłek
                 pstmtDeleteMeal.setInt(1, mealId);
                 pstmtDeleteMeal.executeUpdate();
 
@@ -263,3 +261,4 @@ public class DatabaseHandler {
         }
     }
 }
+

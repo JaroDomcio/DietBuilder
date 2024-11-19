@@ -115,7 +115,6 @@ public class LogicManagerMeals {
                 mealToEdit.addQuantity(quantities.get(i));
             }
 
-            // Aktualizacja modelu listy
             int index = meals.indexOf(mealToEdit);
             if (index >= 0) {
                 meals.setElementAt(mealToEdit, index);
