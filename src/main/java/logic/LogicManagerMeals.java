@@ -30,12 +30,28 @@ public class LogicManagerMeals {
         return null;
     }
 
-    public String getMealIngredientsInfo(Meal meal) {
+    public String getMealIngredientsInfo(Meal meal){
+
+        StringBuilder ingredientsInfo = new StringBuilder();
+        List<Integer> ingredientIds = meal.getIngredientsIds();
+        List<Integer> quantities = meal.getQuantities();
+        for (int i = 0; i < ingredientIds.size(); i++) {
+            Ingredient ingredient = logicManagerIngredients.findIngredientById(ingredientIds.get(i));
+            int quantity = quantities.get(i);
+
+            if (ingredient != null) {
+                ingredientsInfo.append(String.format("- %s: %d g\n", ingredient.getName(), quantity));
+            }
+        }
+        return ingredientsInfo.toString();
+    }
+
+    public ArrayList<Integer> getMealMacroInfo(Meal meal) {
+        ArrayList<Integer> macro = new ArrayList<>();
         if (meal == null || meal.getIngredientsIds().isEmpty()) {
-            return "Nie znaleziono składników dla wybranego posiłku.";
+            return macro;
         }
 
-        StringBuilder ingredientsInfo = new StringBuilder("Składniki dla posiłku: " + meal.getName() + "\n");
         List<Integer> ingredientIds = meal.getIngredientsIds();
         List<Integer> quantities = meal.getQuantities();
 
@@ -49,7 +65,6 @@ public class LogicManagerMeals {
             int quantity = quantities.get(i);
 
             if (ingredient != null) {
-                ingredientsInfo.append(String.format("- %s: %d g\n", ingredient.getName(), quantity));
 
                 totalCalories += ingredient.getCalories() * quantity / 100;
                 totalCarbs += ingredient.getCarbs() * quantity / 100;
@@ -58,13 +73,13 @@ public class LogicManagerMeals {
             }
         }
 
-        ingredientsInfo.append("\nPodsumowanie makroskładników i kalorii dla posiłku:\n");
-        ingredientsInfo.append(String.format("Kalorie: %d kcal\n", totalCalories));
-        ingredientsInfo.append(String.format("Węglowodany: %d g\n", totalCarbs));
-        ingredientsInfo.append(String.format("Białko: %d g\n", totalProtein));
-        ingredientsInfo.append(String.format("Tłuszcze: %d g\n", totalFat));
 
-        return ingredientsInfo.toString();
+        macro.add(totalCalories);
+        macro.add(totalCarbs);
+        macro.add(totalProtein);
+        macro.add(totalFat);
+
+        return macro;
     }
 
     public boolean addMeal(String mealName, ArrayList<Integer> ingredientIds, ArrayList<Integer> quantities) {

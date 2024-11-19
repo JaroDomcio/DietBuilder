@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import javax.swing.JOptionPane;
 
 
@@ -60,7 +61,14 @@ public class GUI {
                     int index = mealsList.locationToIndex(e.getPoint());
                     if (index >= 0) {
                         Meal selectedMeal = mealsList.getModel().getElementAt(index);
-                        String mealInfo = logicManagerMeals.getMealIngredientsInfo(selectedMeal);
+                        ArrayList<Integer> macro = logicManagerMeals.getMealMacroInfo(selectedMeal);
+                        StringBuilder mealInfo = new StringBuilder("Składniki dla posiłku: " + selectedMeal.getName() + "\n");
+                        mealInfo.append(logicManagerMeals.getMealIngredientsInfo(selectedMeal) + "\n");
+                        mealInfo.append("\nPodsumowanie makroskładników i kalorii dla posiłku:\n");
+                        mealInfo.append(String.format("Kalorie: %d kcal\n", macro.get(0)));
+                        mealInfo.append(String.format("Węglowodany: %d g\n", macro.get(1)));
+                        mealInfo.append(String.format("Białko: %d g\n", macro.get(2)));
+                        mealInfo.append(String.format("Tłuszcze: %d g\n", macro.get(3)));
                         JOptionPane.showMessageDialog(frame, mealInfo, "Składniki Posiłku", JOptionPane.INFORMATION_MESSAGE);
                     }
                 }

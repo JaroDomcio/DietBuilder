@@ -105,58 +105,71 @@ public class MealsOptionsGUI {
     private JPanel createAddMealPanel(Meal mealToEdit, boolean isEditMode) {
         JPanel addMealPanel = new JPanel(new BorderLayout());
 
-        JPanel inputPanel = new JPanel(new GridLayout(0, 2, 5, 5));
-
-        JTextField nameField = new JTextField();
-        inputPanel.add(new JLabel("Nazwa:"));
-        inputPanel.add(nameField);
+        // Panel dla nazwy posiłku
+        JPanel inputPanel = new JPanel(new BorderLayout());
+        JPanel namePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel nameLabel = new JLabel("Nazwa:");
+        JTextField nameField = new JTextField(20);
+        namePanel.add(nameLabel);
+        namePanel.add(nameField);
+        inputPanel.add(namePanel, BorderLayout.NORTH);
 
         if (isEditMode && mealToEdit != null) {
             nameField.setText(mealToEdit.getName());
             nameField.setEditable(false);
         }
 
-        ArrayList<JCheckBox> checkBoxes = new ArrayList<>();
-        ArrayList<JTextField> quantityFields = new ArrayList<>();
-        ArrayList<Integer> ingredientIds = new ArrayList<>();
+        // Panel składników (dynamiczne wiersze z JComboBox i JTextField)
+        JPanel ingredientsPanel = new JPanel();
+        ingredientsPanel.setLayout(new BoxLayout(ingredientsPanel, BoxLayout.Y_AXIS));
+        JScrollPane scrollPane = new JScrollPane(ingredientsPanel);
 
-        for (Ingredient ingredient : logicManagerIngredients.getIngredients()) {
-            JCheckBox checkBox = new JCheckBox(ingredient.getName());
-            JTextField quantityField = new JTextField("0");
+        // Przycisk dodawania nowego składnika
+        JButton addIngredientButton = new JButton("Dodaj składnik");
+        addIngredientButton.addActionListener(e -> {
+            addIngredientRow(ingredientsPanel, null, "0");
+            ingredientsPanel.revalidate();
+            ingredientsPanel.repaint();
+        });
 
-            inputPanel.add(checkBox);
-            inputPanel.add(quantityField);
+        // Dodanie istniejących składników w trybie edycji
+        if (isEditMode && mealToEdit != null) {
+            List<Integer> ingredientIds = mealToEdit.getIngredientsIds();
+            List<Integer> quantities = mealToEdit.getQuantities();
 
-            checkBoxes.add(checkBox);
-
-            quantityFields.add(quantityField);
-            ingredientIds.add(ingredient.getId());
-
-            if (isEditMode && mealToEdit != null) {
-                if (mealToEdit.getIngredientsIds().contains(ingredient.getId())) {
-                    checkBox.setSelected(true);
-                    int index = mealToEdit.getIngredientsIds().indexOf(ingredient.getId());
-                    int quantity = mealToEdit.getQuantities().get(index);
-                    quantityField.setText(String.valueOf(quantity));
+            for (int i = 0; i < ingredientIds.size(); i++) {
+                Ingredient ingredient = logicManagerIngredients.findIngredientById(ingredientIds.get(i));
+                if (ingredient != null) {
+                    addIngredientRow(ingredientsPanel, ingredient, String.valueOf(quantities.get(i)));
                 }
             }
+        } else {
+            // Dodajemy pusty wiersz na start
+            addIngredientRow(ingredientsPanel, null, "0");
         }
 
-        addMealPanel.add(new JLabel(isEditMode ? "Edytuj posiłek" : "Dodaj nowy posiłek"), BorderLayout.NORTH);
-        addMealPanel.add(new JScrollPane(inputPanel), BorderLayout.CENTER);
+        inputPanel.add(scrollPane, BorderLayout.CENTER);
 
+        // Panel na dole z przyciskiem dodawania składnika
+        JPanel addButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        addButtonPanel.add(addIngredientButton);
+        inputPanel.add(addButtonPanel, BorderLayout.SOUTH);
+
+        addMealPanel.add(new JLabel(isEditMode ? "Edytuj posiłek (składnik podaj w gramach)" : "Dodaj nowy posiłek (składnik podaj w gramach)"), BorderLayout.NORTH);
+        addMealPanel.add(inputPanel, BorderLayout.CENTER);
+
+        // Panel z przyciskami
         JPanel buttonPanel = new JPanel(new FlowLayout());
         JButton confirmButton = new JButton(isEditMode ? "Zapisz zmiany" : "Dodaj posiłek");
         JButton backButton = new JButton("Powrót");
-
         buttonPanel.add(confirmButton);
         buttonPanel.add(backButton);
-
         addMealPanel.add(buttonPanel, BorderLayout.SOUTH);
 
+        // Obsługa przycisku potwierdzenia
         confirmButton.addActionListener(e -> {
             try {
-                String mealName = nameField.getText();
+                String mealName = nameField.getText().trim();
 
                 if (mealName.isEmpty()) {
                     JOptionPane.showMessageDialog(null, "Nazwa posiłku jest wymagana.", "Błąd", JOptionPane.ERROR_MESSAGE);
@@ -166,37 +179,42 @@ public class MealsOptionsGUI {
                 ArrayList<Integer> selectedIngredientIds = new ArrayList<>();
                 ArrayList<Integer> selectedQuantities = new ArrayList<>();
 
-                boolean hasError = false;
+                // Pobranie danych z wierszy
+                for (Component component : ingredientsPanel.getComponents()) {
+                    if (component instanceof JPanel) {
+                        JPanel rowPanel = (JPanel) component;
+                        JComboBox<Ingredient> ingredientComboBox = (JComboBox<Ingredient>) rowPanel.getComponent(0);
+                        JTextField quantityField = (JTextField) rowPanel.getComponent(1);
 
-                for (int i = 0; i < checkBoxes.size(); i++) {
-                    JCheckBox checkBox = checkBoxes.get(i);
-                    JTextField quantityField = quantityFields.get(i);
-                    int ingredientId = ingredientIds.get(i);
+                        Ingredient selectedIngredient = (Ingredient) ingredientComboBox.getSelectedItem();
+                        if (selectedIngredient == null) {
+                            JOptionPane.showMessageDialog(null, "Wybierz składnik w każdym wierszu.", "Błąd", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
 
-                    if (checkBox.isSelected()) {
                         try {
                             int quantity = Integer.parseInt(quantityField.getText());
                             if (quantity <= 0) {
-                                JOptionPane.showMessageDialog(null, "Ilość składnika musi być większa od 0.", "Błąd", JOptionPane.ERROR_MESSAGE);
-                                hasError = true;
-                                break;
+                                JOptionPane.showMessageDialog(null, "Ilość składnika " + selectedIngredient.getName() + " musi być większa od 0.", "Błąd", JOptionPane.ERROR_MESSAGE);
+                                return;
                             }
-                            selectedIngredientIds.add(ingredientId);
+
+                            if (selectedIngredientIds.contains(selectedIngredient.getId())) {
+                                JOptionPane.showMessageDialog(null, "Składnik " + selectedIngredient.getName() + " został wybrany więcej niż raz.", "Błąd", JOptionPane.ERROR_MESSAGE);
+                                return;
+                            }
+
+                            selectedIngredientIds.add(selectedIngredient.getId());
                             selectedQuantities.add(quantity);
                         } catch (NumberFormatException ex) {
-                            JOptionPane.showMessageDialog(null, "Błędna ilość składnika. Wprowadź poprawne wartości liczbowe.", "Błąd", JOptionPane.ERROR_MESSAGE);
-                            hasError = true;
-                            break;
+                            JOptionPane.showMessageDialog(null, "Wprowadź prawidłową ilość dla składnika.", "Błąd", JOptionPane.ERROR_MESSAGE);
+                            return;
                         }
                     }
                 }
 
-                if (hasError) {
-                    return;
-                }
-
                 if (selectedIngredientIds.isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "Wybierz przynajmniej jeden składnik i podaj ilość.", "Błąd", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "Dodaj przynajmniej jeden składnik.", "Błąd", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
@@ -217,24 +235,48 @@ public class MealsOptionsGUI {
                     }
                 }
 
-                nameField.setText("");
-                for (int i = 0; i < checkBoxes.size(); i++) {
-                    checkBoxes.get(i).setSelected(false);
-                    quantityFields.get(i).setText("0");
-                }
-
                 cardLayout.show(mainPanel, "Meals");
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(null, "Wystąpił błąd podczas zapisywania posiłku.", "Błąd", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        backButton.addActionListener(e -> {
-            cardLayout.show(mainPanel, "Meals");
-        });
+        // Obsługa przycisku powrotu
+        backButton.addActionListener(e -> cardLayout.show(mainPanel, "Meals"));
 
         return addMealPanel;
     }
+
+    // Metoda pomocnicza do dodawania wiersza składnika
+    private void addIngredientRow(JPanel parentPanel, Ingredient selectedIngredient, String quantity) {
+        JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+
+        // JComboBox dla składników
+        JComboBox<Ingredient> ingredientComboBox = new JComboBox<>();
+        for (Ingredient ingredient : logicManagerIngredients.getIngredients()) {
+            ingredientComboBox.addItem(ingredient);
+        }
+        if (selectedIngredient != null) {
+            ingredientComboBox.setSelectedItem(selectedIngredient);
+        }
+        rowPanel.add(ingredientComboBox);
+
+        // JTextField dla ilości
+        JTextField quantityField = new JTextField(quantity, 10);
+        rowPanel.add(quantityField);
+
+        // Przycisk usuwania wiersza
+        JButton removeButton = new JButton("Usuń");
+        removeButton.addActionListener(e -> {
+            parentPanel.remove(rowPanel);
+            parentPanel.revalidate();
+            parentPanel.repaint();
+        });
+        rowPanel.add(removeButton);
+
+        parentPanel.add(rowPanel);
+    }
+
 
     public JPanel getPanel() {
         return panel;

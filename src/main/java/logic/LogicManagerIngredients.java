@@ -18,7 +18,7 @@ public class LogicManagerIngredients {
     }
 
     public boolean addIngredient(String name, int carbs, int fat, int protein, String type) {
-        if (name == null || name.isEmpty()) {
+        if (name == null || name.isEmpty() || type == null || type.isEmpty()) {
             return false;
         }
         int id = findLowestAvailableIngredientId();
@@ -27,6 +27,7 @@ public class LogicManagerIngredients {
         dbHandler.saveIngredient(newIngredient);
         return true;
     }
+
 
     public boolean deleteIngredient(int id) {
         Ingredient ingredientToDelete = findIngredientById(id);

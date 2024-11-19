@@ -93,7 +93,13 @@ public class IngredientsOptionsGUI {
     }
 
     private JPanel createIngredientForm(String title, boolean isEditMode, Ingredient ingredient) {
-        JPanel panel = new JPanel(new GridLayout(6, 2, 5, 5));
+        JPanel panel = new JPanel(new BorderLayout()); // Zmieniamy na BorderLayout
+
+        // Dodanie etykiety informacyjnej na górze
+        panel.add(new JLabel(isEditMode ? "Edytuj składnik (makroskładniki podaj dla 100 gramów)" :"Dodaj składnik (makroskładniki podaj dla 100 gramów)",
+                SwingConstants.CENTER), BorderLayout.NORTH);
+
+        JPanel inputPanel = new JPanel(new GridLayout(5, 2, 5, 5));
 
         JLabel nameLabel = new JLabel("Nazwa:");
         JTextField nameField = new JTextField();
@@ -119,22 +125,28 @@ public class IngredientsOptionsGUI {
             typeField.setText(ingredient.getType());
         }
 
-        panel.add(nameLabel);
-        panel.add(nameField);
-        panel.add(carbsLabel);
-        panel.add(carbsField);
-        panel.add(fatLabel);
-        panel.add(fatField);
-        panel.add(proteinLabel);
-        panel.add(proteinField);
-        panel.add(typeLabel);
-        panel.add(typeField);
+        inputPanel.add(nameLabel);
+        inputPanel.add(nameField);
+        inputPanel.add(carbsLabel);
+        inputPanel.add(carbsField);
+        inputPanel.add(fatLabel);
+        inputPanel.add(fatField);
+        inputPanel.add(proteinLabel);
+        inputPanel.add(proteinField);
+        inputPanel.add(typeLabel);
+        inputPanel.add(typeField);
 
+        // Dodanie inputPanel na środek panelu
+        panel.add(new JScrollPane(inputPanel), BorderLayout.CENTER);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout());
         JButton saveButton = new JButton(isEditMode ? "Zapisz zmiany" : "Dodaj składnik");
         JButton backButton = new JButton("Powrót");
 
-        panel.add(saveButton);
-        panel.add(backButton);
+        buttonPanel.add(saveButton);
+        buttonPanel.add(backButton);
+
+        panel.add(buttonPanel, BorderLayout.SOUTH);
 
         saveButton.addActionListener(e -> {
             try {
@@ -143,6 +155,11 @@ public class IngredientsOptionsGUI {
                 int fat = Integer.parseInt(fatField.getText());
                 int protein = Integer.parseInt(proteinField.getText());
                 String type = typeField.getText();
+
+                if (type == null || type.trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Pole 'Typ' jest wymagane.", "Błąd", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
 
                 if (isEditMode && ingredient != null) {
                     boolean success = logicManagerIngredients.changeMacro(ingredient.getId(), carbs, fat, protein, type);
@@ -156,7 +173,7 @@ public class IngredientsOptionsGUI {
                     if (success) {
                         JOptionPane.showMessageDialog(null, "Składnik został dodany!");
                     } else {
-                        JOptionPane.showMessageDialog(null, "Nazwa składnika jest wymagana.", "Błąd", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(null, "Wszystkie pola, w tym 'Typ', są wymagane.", "Błąd", JOptionPane.ERROR_MESSAGE);
                     }
                 }
 
@@ -167,6 +184,7 @@ public class IngredientsOptionsGUI {
             }
         });
 
+
         backButton.addActionListener(e -> {
             clearFields(nameField, carbsField, fatField, proteinField, typeField);
             cardLayout.show(mainPanel, "Ingredients");
@@ -174,6 +192,7 @@ public class IngredientsOptionsGUI {
 
         return panel;
     }
+
 
     private void clearFields(JTextField... fields) {
         for (JTextField field : fields) {
